@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useState } from "react";
 import type { DisplayMessage, ToolCall } from "@/lib/agent-types";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatMessageProps {
   message: DisplayMessage;
@@ -90,20 +91,39 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
       )}
 
-      <div className={`max-w-[85%] md:max-w-[75%] ${isUser ? "items-end" : "items-start"} flex flex-col`}>
+      <div className={`max-w-[85%] md:max-w-[80%] ${isUser ? "items-end" : "items-start"} flex flex-col`}>
         {!isUser && message.toolCalls && message.toolCalls.length > 0 && (
           <div className="mb-2 space-y-2 w-full">
             {message.toolCalls.map((tc) => <ToolCallCard key={tc.id} toolCall={tc} />)}
           </div>
         )}
 
-        <Card className={isUser ? "border-transparent" : "bg-card border-border/50 shadow-sm"} style={isUser ? { background: "linear-gradient(135deg, #009AA5 0%, #0ea5e9 100%)" } : undefined}>
+        <Card className={isUser ? "border-transparent" : "bg-card border-border/50 shadow-sm overflow-hidden"} style={isUser ? { background: "linear-gradient(135deg, #009AA5 0%, #0ea5e9 100%)" } : undefined}>
           <CardContent className="p-4">
             {isUser ? (
               <p className="text-sm leading-relaxed whitespace-pre-wrap break-words text-white">{message.content}</p>
             ) : message.content ? (
-              <div className="text-sm leading-relaxed prose prose-sm prose-neutral dark:prose-invert max-w-none prose-headings:mt-4 prose-headings:mb-2 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-pre:my-2 prose-blockquote:my-2 prose-a:text-[#009AA5] prose-a:no-underline hover:prose-a:underline prose-code:text-[#009AA5] prose-code:bg-[rgba(0,154,165,0.1)] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-['']">
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+              <div className="text-sm leading-relaxed prose prose-sm prose-neutral dark:prose-invert max-w-none
+                prose-headings:mt-4 prose-headings:mb-2
+                prose-p:my-1.5
+                prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5
+                prose-pre:my-2
+                prose-blockquote:my-2
+                prose-hr:my-4
+                prose-a:text-[#009AA5] prose-a:no-underline hover:prose-a:underline
+                prose-code:text-[#009AA5] prose-code:bg-[rgba(0,154,165,0.1)] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-['']
+                prose-pre:bg-muted prose-pre:border prose-pre:border-border/50
+                [&_table]:w-full [&_table]:border-collapse [&_table]:my-3
+                [&_thead]:border-b [&_thead]:border-border
+                [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:text-muted-foreground [&_th]:bg-muted/50
+                [&_td]:px-3 [&_td]:py-2 [&_td]:text-xs [&_td]:border-b [&_td]:border-border/50
+                [&_tr:hover]:bg-muted/30
+                [&_blockquote]:border-l-2 [&_blockquote]:border-[#009AA5]/40 [&_blockquote]:pl-4 [&_blockquote]:italic
+                [&_strong]:text-foreground
+              ">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {message.content}
+                </ReactMarkdown>
               </div>
             ) : null}
           </CardContent>

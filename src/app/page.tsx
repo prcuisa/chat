@@ -102,7 +102,15 @@ export default function Home() {
         signal: abortController.signal,
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+        let errorDetail = `HTTP ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error) errorDetail = errorData.error;
+          if (errorData.hint) errorDetail += `. ${errorData.hint}`;
+        } catch {}
+        throw new Error(errorDetail);
+      }
 
       const reader = response.body?.getReader();
       if (!reader) throw new Error("No response body");
@@ -152,8 +160,14 @@ export default function Home() {
               break;
             }
             case "error": {
-              toast({ title: "Error", description: (event as { content: string }).content, variant: "destructive" });
-              if (!fullContent) updateMessage(assistantMsgId, { content: `Terjadi kesalahan: ${(event as { content: string }).content}` });
+              const errorMsg = (event as { content: string }).content;
+              console.error("[Chat Error]", errorMsg);
+              toast({ title: "Error", description: errorMsg, variant: "destructive" });
+              if (!fullContent) {
+                updateMessage(assistantMsgId, {
+                  content: `⚠️ **Terjadi kesalahan:**\n\n${errorMsg}\n\n---\n*Tips: Cek konfigurasi di /api/agent atau pastikan environment variables sudah benar.*`,
+                });
+              }
               break;
             }
           }
@@ -168,8 +182,12 @@ export default function Home() {
     } catch (error: unknown) {
       const err = error as Error;
       if (err.name !== "AbortError") {
+        console.error("[Fetch Error]", err);
         toast({ title: "Error", description: err.message, variant: "destructive" });
-        updateMessage(assistantMsgId, { content: `Koneksi error: ${err.message}`, isStreaming: false });
+        updateMessage(assistantMsgId, {
+          content: `⚠️ **Koneksi error:** ${err.message}\n\n---\n*Tips: Buka /api/agent di browser untuk cek status konfigurasi.*`,
+          isStreaming: false,
+        });
       } else {
         updateMessage(assistantMsgId, { content: fullContent || "Dihentikan.", isStreaming: false });
       }
